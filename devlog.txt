@@ -1,22 +1,13 @@
 Todo:
-- Write Scripts
-- environment / requirements.txt
-
-- get on github 
-(delete the logs before you push)
-
 - re-upload the json files with train/test names ~_~
-(Modifying and putting in dummy dataset now)
-
 - start the training schedule
-- make sure the da works
-
 
 All is well:
 - Clean modeling notebook
 - Clean GridAI Runs and Datastores
 - Remove the old repo
 - Create smart-bagging harness
+- Create hyperparameter yaml file
 
 ---------------
 Time permitting:

@@ -6,5 +6,5 @@ from base import BaseNet
 from .experiment import ExperimentInterface
 
 class DoubleLoss(ExperimentInterface):
-  def run_experiment(self, args) -> None:
+  def run_experiment(self, args: dict) -> None:
     pass
