@@ -8,7 +8,7 @@ from albumentations.pytorch.transforms import ToTensorV2
 from albumentations.augmentations.geometric.resize import LongestMaxSize
 
 class BaseDataset(Dataset):
-  def __init__(self, input, image_size=224, da=False):
+  def __init__(self, datastore, input, image_size=224, da=False):
     if isinstance(input, str):
       with open(input) as f:
         json_data = json.load(f)
@@ -16,6 +16,7 @@ class BaseDataset(Dataset):
     elif isinstance(input, list):
       self.data = input
 
+    self.datastore = datastore
     self.image_size = image_size
     self.da = da
     self.transform = A.Compose(
@@ -32,7 +33,7 @@ class BaseDataset(Dataset):
   def __getitem__(self, idx):
     # --------- Inner functions ------------
     def get_image(index):
-      img_path = self.data[index]['fpath']
+      img_path = Path(self.datastore) / self.data[index]['fpath']
       pillow_image = Image.open(img_path)
       img = np.array(pillow_image)
       return img

@@ -7,4 +7,10 @@ from .experiment import ExperimentInterface
 
 class SmartBagging(ExperimentInterface):
   def run_experiment(self, args: dict) -> None:
+    # Split into deterministic datasets and train the specified bag num
+
+
     pass
+
+# Bagging Logic
+

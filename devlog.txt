@@ -1,5 +1,11 @@
 Todo:
 - re-upload the json files with train/test names ~_~
+(Almost there)
+Need to access images on remote gpu relative to datastore path.
+Do two things:
+- Update the Dataset object to access image from datastore path 
+- Update the json paths -- remove the front: "./{dataset_name}/"
+
 - start the training schedule
 
 All is well:
