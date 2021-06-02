@@ -5,6 +5,7 @@ Need to access images on remote gpu relative to datastore path.
 Do two things:
 - Update the Dataset object to access image from datastore path 
 - Update the json paths -- remove the front: "./{dataset_name}/"
+|-- Update the other json files and upload to GridAI.
 
 - start the training schedule
 

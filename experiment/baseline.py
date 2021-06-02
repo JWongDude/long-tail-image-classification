@@ -10,7 +10,7 @@ class Baseline(ExperimentInterface):
     # 1) Init Data Components
     train_json = str(Path(args['datastore']) / 'train.json')
     test_json = str(Path(args['datastore']) / 'test.json')
-    dataset = BaseDataset(train_json, image_size=args['image_size'], da=args['augment_data'])
+    dataset = BaseDataset(args['datastore'], train_json, image_size=args['image_size'], da=args['augment_data'])
 
     train_dataloader, val_dataloader = get_dataloaders(dataset, batch_size=args['batch_size'], num_workers=args['num_workers'])
     test_dataloader = get_test_dataloader(test_json)
