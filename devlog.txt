@@ -1,20 +1,40 @@
 Todo:
-- re-upload the json files with train/test names ~_~
-(Almost there)
-Need to access images on remote gpu relative to datastore path.
-Do two things:
-- Update the Dataset object to access image from datastore path 
-- Update the json paths -- remove the front: "./{dataset_name}/"
-|-- Update the other json files and upload to GridAI.
+- Swap out timm stuff with Facebook's weights.
+- repeat the model sweep
+- repeat the hp sweep 
+image_size, also try preturbing around
+the results you already know. 
 
-- start the training schedule
+- Meanwhile, investigate the double loss. 
+This is something that you can test in 
+the big hp sweep. 
 
-All is well:
+- While hp sweeping, 
+DEVELOP THE SMART BAGGING CODE.
+Make sure it trains locally. 
+That is, your datastore is cifar50. 
+
+I want the bagging code completely done.
+(Train the models!!!)
+---------
+Friday
+
+Based on results of yesterday, 
+either finish or investigate 
+a final approach.
+(It is a lot of models to train after all) 
+(Forget MAML, you will not find good weights)
+
+Okay just get smart bagging done. 
+
+Calm work:
 - Clean modeling notebook
 - Clean GridAI Runs and Datastores
 - Remove the old repo
-- Create smart-bagging harness
-- Create hyperparameter yaml file
+
+----
+
+- Create smart-bagging harness (DONE)
 
 ---------------
 Time permitting:
@@ -23,3 +43,32 @@ Time permitting:
 - Double Loss
 
 (But lots of focus will be on building presentation slides)
+
+---------------
+Training Schedule:  
+0) Model Sweep, 10 epochs.
+
+1) Plain EfficientNet. Hyperparameter Tuning for 10 epochs (full dataset), 
+then train for 50 epochs (all datasets). 
+
+2) Target Sampling + EffcientNet using best hyperparameters.
+Train for 50 epochs. (imbalanced datasets)
+2b) High target, low target, 50 epochs (most imbalanced dataset)
+2c) Try bagging. 
+
+3) Smart-Bagging + EffcientNet using best hyperparameters.
+Train for 50 epochs. (imbalanced datasets)
+You can tinker with simple or weight average after you have
+retrieved all the weights. (This may get expensive)
+3b) Try a meta-learner ensemble, although EffcientNet architecture should do well.
+
+
+Now, independent of data balancing! 
+4) Try optimizing with respect to two loss functions, 50 epochs. (imbalanced datasets)
+4b) Weighted recall for most imbalanced dataset (most imbalanced dataset)
+(Need to find appropriate loss function)
+
+5) Time permitting, split training between EfficientNet and ANIL.
+Pure Modeling, no data prep strategy. Another Inference-Skeleton model.
+Note: will need to use whatever pretrained weights for whatever architecture 
+is available to be anywhere near effective.

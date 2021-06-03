@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from pytorch_lightning import Trainer
+import pytorch_lightning.utilities.seed as seed
 from experiment import Baseline, SmartBagging, DoubleLoss, DoubleModel
 
 # Experiments 
@@ -12,6 +12,7 @@ def run_experiment(args: dict) -> None:
   experiments[args['experiment']].run_experiment(args)
 
 def main():
+  seed.seed_everything(280) 
   parser = ArgumentParser()
   # Specify Experiment
   parser.add_argument('--experiment', type=str, default='baseline')
