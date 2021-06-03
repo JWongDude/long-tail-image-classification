@@ -1,17 +1,18 @@
 import torch                                      # For utility
 from torch import nn                              # For layers
 from torch.nn import functional as F              # For loss, activation functions
-import timm                                       # For transfer learning
+# import timm                                       # For transfer learning
+from torchvision import models
 import torchmetrics                               # For metrics 
 from pytorch_lightning.core.lightning import LightningModule  # For model
 
 class BaseNet(LightningModule):
-  def __init__(self, model_type='efficientnet_b0', lr=1e-5):
+  def __init__(self, model_type='resnet50', lr=1e-5):
     super().__init__()
     self.save_hyperparameters()
 
     # Create backbone and classifier
-    backbone = timm.create_model(model_name=model_type, pretrained=True)
+    backbone = getattr(models, model_type)(pretrained=True)
     layers = list(backbone.children())[:-1]
     [fc] = list(backbone.children())[-1:]
     self.feature_extractor = nn.Sequential(*layers)
