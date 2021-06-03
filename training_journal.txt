@@ -5,6 +5,31 @@ Model Sweep with fixed hyperparameters:
 --> Winner: resnet50d
 Smaller architecture underfits and larger architectures overfit!
 
+6/3 
+RUN_NAME: proper-architecture-sweep
+
+
+
+6/3
+RUN_NAME: proper-hp-tuning
+
+
+
+6/3 
+RUN_NAME: imbalanced-baselines
+
+
+
+
+6/3
+RUN_NAME: target-sampling 
+
+
+
+
+
+----
+
 6/2
 RUN_NAME: baseline-hp-sweeps
 image_size: [32, 64, 128, 224]

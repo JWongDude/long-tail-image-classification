@@ -11,7 +11,6 @@ def get_dataloaders(dataset, batch_size=16, num_workers=2):
   split = int(np.floor(val_split * dataset_size)) 
 
   # Shuffle Data
-  np.random.seed(42)
   np.random.shuffle(indices)
 
   # Split Base Dataset into Training and Validation Datasets
