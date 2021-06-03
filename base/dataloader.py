@@ -25,7 +25,7 @@ def get_dataloaders(dataset, batch_size=16, num_workers=2):
 
   return train_dataloader, val_dataloader
 
-def get_test_dataloader(test_json):
-  testset = BaseDataset(test_json)
+def get_test_dataloader(datastore, test_json):
+  testset = BaseDataset(datastore, test_json)
   test_dataloader = DataLoader(testset, batch_size=32, num_workers=2)
   return test_dataloader

@@ -1,11 +1,10 @@
 from argparse import ArgumentParser
 from pytorch_lightning import Trainer
-from experiment import Baseline, TargetSampling, SmartBagging, DoubleLoss, DoubleModel
+from experiment import Baseline, SmartBagging, DoubleLoss, DoubleModel
 
 # Experiments 
 def run_experiment(args: dict) -> None:
   experiments = {'baseline': Baseline(), 
-                'target_sampling': TargetSampling(),
                 'smart_bagging': SmartBagging(),
                 'double_loss': DoubleLoss(),
                 'double_model': DoubleModel()}

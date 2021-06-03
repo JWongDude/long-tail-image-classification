@@ -13,7 +13,7 @@ class Baseline(ExperimentInterface):
     dataset = BaseDataset(args['datastore'], train_json, image_size=args['image_size'], da=args['augment_data'])
 
     train_dataloader, val_dataloader = get_dataloaders(dataset, batch_size=args['batch_size'], num_workers=args['num_workers'])
-    test_dataloader = get_test_dataloader(test_json)
+    test_dataloader = get_test_dataloader(args['datastore'], test_json)
 
     # 2) Init Model
     model = BaseNet(model_type=args['model'], lr=args['lr'])
