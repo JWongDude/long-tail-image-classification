@@ -7,7 +7,7 @@ import torchmetrics                               # For metrics
 from pytorch_lightning.core.lightning import LightningModule  # For model
 
 class BaseNet(LightningModule):
-  def __init__(self, model_type='resnet50', lr=1e-5):
+  def __init__(self, model_type='resnet50', lr=4e-4):
     super().__init__()
     self.save_hyperparameters()
 

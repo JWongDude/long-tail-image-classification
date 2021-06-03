@@ -12,9 +12,10 @@ def run_experiment(args: dict) -> None:
   experiments[args['experiment']].run_experiment(args)
 
 def main():
-  seed.seed_everything(280) 
-  parser = ArgumentParser()
+  seed.seed_everything(1)
+
   # Specify Experiment
+  parser = ArgumentParser()
   parser.add_argument('--experiment', type=str, default='baseline')
 
   # Data args 
@@ -27,7 +28,7 @@ def main():
 
   # Model args
   parser.add_argument('--model', type=str, default='resnet50')
-  parser.add_argument('--lr', type=float, default=1e-5)
+  parser.add_argument('--lr', type=float, default=4e-4)
 
   # Trainer args 
   parser.add_argument('--gpus', type=int, default=1)

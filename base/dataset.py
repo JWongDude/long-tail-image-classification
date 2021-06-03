@@ -6,6 +6,7 @@ import numpy as np
 import albumentations as A 
 from albumentations.pytorch.transforms import ToTensorV2
 from albumentations.augmentations.geometric.resize import LongestMaxSize
+from albumentations.augmentations.transforms import Normalize
 
 class BaseDataset(Dataset):
   def __init__(self, datastore, input, image_size=224, da=False):
@@ -50,9 +51,13 @@ class BaseDataset(Dataset):
     def scale(img, image_size):
       rescale = LongestMaxSize(image_size)
       return rescale.apply(img)
-    # --------------------------------------
 
-    image = scale(get_image(idx), self.image_size)
+    def normalize(img):
+      normalize = Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
+      return normalize.apply(img)
+
+    # --------------------------------------
+    image = normalize(scale(get_image(idx), self.image_size))
     category_id = get_category_id(idx)
     if self.da is True:
       img_tensor = toTensor(self.transform(image=image)['image'])
