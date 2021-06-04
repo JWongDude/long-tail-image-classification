@@ -1,6 +1,7 @@
 from collections import Counter
 from pathlib import Path
 import json 
+import random
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
 from base import BaseDataset, get_dataloaders, get_test_dataloader, BaseNet
@@ -77,6 +78,7 @@ def create_bags(imbalanced_json, threshold=200):
 
   # 3) Create Datasets
   majority, minority = split_histogram(hist, entries, threshold)
+  random.shuffle(majority) # need shuffle the deck! 
   bags = []
   for start in range(num_bags):
     current_bag = majority[start::num_bags] + minority  # we toss out some samples and thats okay
