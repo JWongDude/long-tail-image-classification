@@ -6,8 +6,17 @@ Model Sweep with fixed hyperparameters:
 Smaller architecture underfits and larger architectures overfit!
 
 6/3 
-RUN_NAME: proper-architecture-sweep
+RUN_NAME: proper-arch-sweep
+- Full dataset
+- Architectures:
+  - resnet34d
+  - resnet50
+  - resnet50d
+  - densenet121
+  - efficientnet_b0
+  - efficientnet_b1_pruned
 
+Winner: 
 
 
 6/3

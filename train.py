@@ -27,7 +27,7 @@ def main():
   parser.add_argument('--bag_num', type=int, default=0)
 
   # Model args
-  parser.add_argument('--model', type=str, default='resnet50')
+  parser.add_argument('--model', type=str, default='efficientnet_b0')
   parser.add_argument('--lr', type=float, default=4e-4)
 
   # Trainer args 
