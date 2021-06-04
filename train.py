@@ -1,13 +1,11 @@
 from argparse import ArgumentParser
 import pytorch_lightning.utilities.seed as seed
-from experiment import Baseline, SmartBagging, DoubleLoss, DoubleModel
+from experiment import Baseline, SmartBagging
 
 # Experiments 
 def run_experiment(args: dict) -> None:
   experiments = {'baseline': Baseline(), 
-                'smart_bagging': SmartBagging(),
-                'double_loss': DoubleLoss(),
-                'double_model': DoubleModel()}
+                'smart_bagging': SmartBagging()}
 
   experiments[args['experiment']].run_experiment(args)
 
