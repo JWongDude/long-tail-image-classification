@@ -2,27 +2,27 @@ import torch                                      # For utility
 from torch import nn                              # For layers
 from torch.nn import functional as F              # For loss, activation functions
 import timm                                       # For transfer learning
-# from torchvision import models
 import torchmetrics                               # For metrics 
 from pytorch_lightning.core.lightning import LightningModule  # For model
 
 class BaseNet(LightningModule):
-  def __init__(self, model_type='resnet50', lr=4e-4):
+  def __init__(self, model_type='efficientnet_b0', lr=1e-5):
     super().__init__()
     self.save_hyperparameters()
 
-    # Create backbone and classifier
+    # Create backbone
     backbone = timm.create_model(model_type, pretrained=True)
-    # backbone = getattr(models, model_type)(pretrained=True)
     layers = list(backbone.children())[:-1]
     [fc] = list(backbone.children())[-1:]
     self.feature_extractor = nn.Sequential(*layers)
     self.classifer = nn.Linear(fc.in_features, 50)
 
-    # Define metrics
+    # Metrics
     self.train_acc = torchmetrics.Accuracy()
     self.valid_acc = torchmetrics.Accuracy()
-    self.test_acc = torchmetrics.Accuracy()
+    self.test_acc = torchmetrics.Accuracy() 
+    self.preds = []
+    self.labels = []
 
   def forward(self, x):
     self.feature_extractor.eval() 
@@ -66,3 +66,20 @@ class BaseNet(LightningModule):
 
     self.log('test_loss', loss)
     self.log('test_acc', self.test_acc)
+
+    # Aggregated Metrics
+    self.preds.append(preds.cpu())
+    self.labels.append(y.cpu())
+
+  def test_epoch_end(self, outputs):
+    precision = torchmetrics.Precision(num_classes=50)
+    precision(torch.cat(self.preds), torch.cat(self.labels))
+    self.log('precision', precision)
+
+    recall = torchmetrics.Recall(num_classes=50)
+    recall(torch.cat(self.preds), torch.cat(self.labels))
+    self.log('recall', recall)
+
+    auroc = torchmetrics.AUROC(num_classes=50)
+    auroc(torch.cat(self.preds), torch.cat(self.labels))
+    self.log('AUROC', auroc)
