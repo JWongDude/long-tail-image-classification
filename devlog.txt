@@ -36,6 +36,18 @@ Calm work:
 
 - Create smart-bagging harness (DONE)
 
+Testing is failing for target sampled datasets. 
+Solution: Upload these directories with the original cifar50.
+All the same access code stays unchanged.
+Simply include the cifar50 directory into these target sampled directories
+and change each test_json file: images -> cifar50.
+
+Do this one at a time so we do not copy images.
+1) Move cifar50 into a directory
+2) Change the fpaths, images -> cifar50
+3) Upload this updated directory
+Repeat.
+
 ---------------
 Time permitting:
 - Try a MAML model

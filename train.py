@@ -22,6 +22,7 @@ def main():
   parser.add_argument('--image_size', type=int, default=224)
   parser.add_argument('--batch_size', type=int, default=16)
   parser.add_argument('--num_workers', type=int, default=4)
+  parser.add_argument('--threshold', type=int, default=0) # Configure these for smart bagging 
   parser.add_argument('--bag_num', type=int, default=0)
 
   # Model args
