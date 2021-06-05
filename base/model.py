@@ -1,3 +1,4 @@
+from pytorch_lightning.core.step_result import weighted_mean
 import torch                                      # For utility
 from torch.nn import functional as F              # For loss, activation functions
 from torch import nn                              # For layers
@@ -6,7 +7,7 @@ import torchmetrics                               # For metrics
 from pytorch_lightning.core.lightning import LightningModule  # For model
 
 class BaseNet(LightningModule):
-  def __init__(self, model_type='efficientnet_b0', lr=1e-5, weight_class=50, weight=0.2):
+  def __init__(self, model_type='efficientnet_b0', lr=4e-4, weighted_loss=None, hist=None, beta=None):
     super().__init__()
     self.save_hyperparameters()
 
@@ -16,6 +17,9 @@ class BaseNet(LightningModule):
     [fc] = list(backbone.children())[-1:]
     self.feature_extractor = nn.Sequential(*layers)
     self.classifer = nn.Linear(fc.in_features, 50)
+
+    # Weighted Loss
+    self.weighted_loss = WeightedLoss(weighted_loss, hist, beta)
 
     # Metrics
     self.train_acc = torchmetrics.Accuracy()
@@ -39,23 +43,20 @@ class BaseNet(LightningModule):
   def training_step(self, batch, batch_idx):
     x, y = batch 
     logits = self(x)
-    loss = F.cross_entropy(logits, y) # One hot encoding, log_softmax interally
+    # loss = F.cross_entropy(logits, y)  # One hot encoding, log_softmax interally
+    loss = self.weighted_loss(F.log_softmax(logits), y)  # Identity or Weighted Function
     preds = F.softmax(logits, dim=1)
     self.train_acc(preds, y)
 
-    scale_factor = 1
-    for label in y:
-      if label > self.hparams['weight_class']:
-        scale_factor += self.hparams['weight']
-
     self.log('train_loss', loss)
     self.log('train_acc', self.train_acc)
-    return loss * scale_factor  # Goes to optimizer
+    return loss  # Goes to optimizer
 
   def validation_step(self, batch, batch_idx):
     x, y = batch 
     logits = self(x)
-    loss = F.cross_entropy(logits, y)
+    # loss = F.cross_entropy(logits, y)
+    loss = self.weighted_loss(F.log_softmax(logits), y)
     preds = F.softmax(logits, dim=1)
     self.valid_acc(preds, y)
 
@@ -65,7 +66,8 @@ class BaseNet(LightningModule):
   def test_step(self, batch, batch_idx):
     x, y = batch 
     logits = self(x)
-    loss = F.cross_entropy(logits, y)
+    # loss = F.cross_entropy(logits, y)
+    loss = self.weighted_loss(F.log_softmax(logits), y)
     preds = F.softmax(logits, dim=1)
     self.test_acc(preds, y)
 
@@ -88,3 +90,30 @@ class BaseNet(LightningModule):
     auroc = torchmetrics.AUROC(num_classes=50)
     auroc(torch.cat(self.preds), torch.cat(self.labels))
     self.log('AUROC', auroc)
+  
+# Weighted Loss Functions
+class WeightedLoss:
+  def __init__(self, weighted_loss, hist, beta=None):
+    # Store arguments, Calculate Normalized Weights
+    if weighted_loss == "ins":
+      weights = torch.tensor([1.0 / sample_count for sample_count in hist.values()])
+      self.weight_map = weights / torch.sum(weights)  
+
+    elif weighted_loss == "isns":
+      weights = torch.sqrt(torch.tensor([1.0 / sample_count for sample_count in hist.values()]))
+      self.weight_map = weights / torch.sum(weights)
+
+    elif weighted_loss == "ens":
+      e_numerator = 1.0 - torch.tensor([torch.pow(beta, sample_count) for sample_count in hist.values()])
+      e_denominator = 1.0 - beta
+      weights = e_denominator / e_numerator
+
+      self.weight_map = weights / torch.sum(weights)
+    
+    else:  # Identity
+      self.weight_map = torch.ones(50)
+
+  # Note, weights are applied to elements of log-softmax, then pass through cross-entopy loss.
+  def __call__(self, log_softmax_logits, targets):
+    weights = torch.tensor([self.weight_map[target.item()] for target in targets]).cuda()
+    return F.nll_loss(log_softmax_logits * weights)

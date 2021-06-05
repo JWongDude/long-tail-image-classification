@@ -25,7 +25,13 @@ class SmartBagging(ExperimentInterface):
     models = []
     for bag in bags:
       train_dataloader, val_dataloader = get_dataloaders(bag, batch_size=args['batch_size'], num_workers=args['num_workers'])
-      model = BaseNet(model_type=args['model'], lr=args['lr'], weight_class=args['weight_class'], weight=args['weight'])
+
+      if args['weighted_loss'] is not None:
+        hist = get_histogram(process_json(train_json))
+        model = BaseNet(model_type=args['model'], lr=args['lr'], weighted_loss=args['weighted_loss'], hist=hist, beta=args['beta'])
+      else:
+        model = BaseNet(model_type=args['model'], lr=args['lr'])      
+      
       trainer.fit(model, train_dataloader, val_dataloader)
       models.append(model)
     
@@ -48,11 +54,11 @@ def process_json(json_path):
 def get_histogram(input): # list of json data
   if isinstance(input, str):
     json_data = process_json(input)
-    category_ids = [entry['category_id'] for entry in json_data]
+    category_ids = [entry['category_id'] // 2 for entry in json_data]
     hist = Counter(category_ids)
   else:
     json_data = input
-    category_ids = [entry['category_id'] for entry in json_data]
+    category_ids = [entry['category_id'] // 2 for entry in json_data]
     hist = Counter(category_ids)
   return hist
 
