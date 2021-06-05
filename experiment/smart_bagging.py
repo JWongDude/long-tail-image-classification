@@ -102,7 +102,7 @@ class ModelEnsemble(LightningModule):
     prediction = torch.zeros(50)
     for model in self.models:
       model.eval()
-      prediction = prediction + model(x)  # Simple Aggregate
+      prediction = prediction + model(x.cpu())  # Simple Aggregate
     return prediction
 
   def test_step(self, batch, batch_idx):
