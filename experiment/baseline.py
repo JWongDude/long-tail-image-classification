@@ -16,7 +16,7 @@ class Baseline(ExperimentInterface):
     test_dataloader = get_test_dataloader(args['datastore'], test_json)
 
     # 2) Init Model
-    model = BaseNet(model_type=args['model'], lr=args['lr'])
+    model = BaseNet(model_type=args['model'], lr=args['lr'], weight_class=args['weight_class'], weight=args['weight'])
 
     # 3) Init Trainer 
     trainer = Trainer(gpus=args['gpus'], max_epochs=args['epochs'],

@@ -28,6 +28,8 @@ def main():
   # Model args
   parser.add_argument('--model', type=str, default='efficientnet_b0')
   parser.add_argument('--lr', type=float, default=4e-4)
+  parser.add_argument('--weight_class', type=int, default=50)
+  parser.add_argument('--weight', type=float, default=0.2)
 
   # Trainer args 
   parser.add_argument('--gpus', type=int, default=1)

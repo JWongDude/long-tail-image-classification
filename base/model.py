@@ -6,7 +6,7 @@ import torchmetrics                               # For metrics
 from pytorch_lightning.core.lightning import LightningModule  # For model
 
 class BaseNet(LightningModule):
-  def __init__(self, model_type='efficientnet_b0', lr=1e-5):
+  def __init__(self, model_type='efficientnet_b0', lr=1e-5, weight_class=50, weight=0.2):
     super().__init__()
     self.save_hyperparameters()
 
@@ -43,9 +43,14 @@ class BaseNet(LightningModule):
     preds = F.softmax(logits, dim=1)
     self.train_acc(preds, y)
 
+    scale_factor = 1
+    for label in y:
+      if label > self.hparams['weight_class']:
+        scale_factor += self.hparams['weight']
+
     self.log('train_loss', loss)
     self.log('train_acc', self.train_acc)
-    return loss  # Mandatory
+    return loss * scale_factor  # Goes to optimizer
 
   def validation_step(self, batch, batch_idx):
     x, y = batch 
