@@ -26,9 +26,6 @@ class SmartBagging(ExperimentInterface):
     for bag in bags:
       train_dataloader, val_dataloader = get_dataloaders(bag, batch_size=args['batch_size'], num_workers=args['num_workers'])
       model = BaseNet(model_type=args['model'], lr=args['lr'], weight_class=args['weight_class'], weight=args['weight'])
-      trainer = Trainer(gpus=args['gpus'], max_epochs=args['epochs'],
-                      checkpoint_callback=True, 
-                      logger=TensorBoardLogger(save_dir='lightning_logs'))  # Init another trainer for each learner to see its metrics
       trainer.fit(model, train_dataloader, val_dataloader)
       models.append(model)
     
