@@ -101,7 +101,7 @@ class ModelEnsemble(LightningModule):
     self.labels = []
 
   def forward(self, x):
-    prediction = torch.zeros(50).gpu()
+    prediction = torch.zeros(50).cuda()
     for model in self.models:
       model.eval()
       prediction = prediction + model(x)  # Simple Aggregate
