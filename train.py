@@ -22,13 +22,12 @@ def main():
   parser.add_argument('--image_size', type=int, default=224)
   parser.add_argument('--batch_size', type=int, default=16)
   parser.add_argument('--num_workers', type=int, default=4)
-  parser.add_argument('--threshold', type=int, default=0) # Configure these for smart bagging 
-  parser.add_argument('--bag_num', type=int, default=0)
+  parser.add_argument('--threshold', type=int, default=0) # Configure this for smart bagging 
 
   # Model args
   parser.add_argument('--model', type=str, default='efficientnet_b0')
   parser.add_argument('--lr', type=float, default=4e-4)
-  parser.add_argument('--weight_class', type=int, default=50)
+  parser.add_argument('--weight_class', type=int, default=100)  # Default off
   parser.add_argument('--weight', type=float, default=0.2)
 
   # Trainer args 

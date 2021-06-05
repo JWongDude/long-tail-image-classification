@@ -1,6 +1,6 @@
 import torch                                      # For utility
-from torch import nn                              # For layers
 from torch.nn import functional as F              # For loss, activation functions
+from torch import nn                              # For layers
 import timm                                       # For transfer learning
 import torchmetrics                               # For metrics 
 from pytorch_lightning.core.lightning import LightningModule  # For model

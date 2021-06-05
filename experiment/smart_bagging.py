@@ -2,6 +2,10 @@ from collections import Counter
 from pathlib import Path
 import json 
 import random
+import torchmetrics                               # For metrics 
+from pytorch_lightning.core.lightning import LightningModule  # For model
+import torch                                      # For utility
+from torch.nn import functional as F              # For loss, activation functions
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
 from base import BaseDataset, get_dataloaders, get_test_dataloader, BaseNet
@@ -10,31 +14,28 @@ from .experiment import ExperimentInterface
 
 class SmartBagging(ExperimentInterface):
   def run_experiment(self, args: dict) -> None:
-    # 1) Init Data Components 
+    # 1) Init Ensemble Components 
     train_json = str(Path(args['datastore']) / 'train.json')   
-    test_json = str(Path(args['datastore']) / 'test.json')
     bags = create_bags(args, train_json, args['threshold'])
-    dataset = bags[args['bag_num']]
-    train_dataloader, val_dataloader = get_dataloaders(dataset, batch_size=args['batch_size'], num_workers=args['num_workers'])
-    test_dataloader = get_test_dataloader(args['datastore'], test_json)
-
-     # 2) Init Model
-    model = BaseNet(model_type=args['model'], lr=args['lr'], weight_class=args['weight_class'], weight=args['weight'])
-
-    # 3) Init Trainer 
     trainer = Trainer(gpus=args['gpus'], max_epochs=args['epochs'],
                       checkpoint_callback=True, 
                       logger=TensorBoardLogger(save_dir='lightning_logs'))
 
-    # 4) Run Training
-    trainer.fit(model, train_dataloader, val_dataloader)
-    trainer.save_checkpoint("training_end.ckpt")
-
-    # 5) Run Inference (inidividual model)
-    result = trainer.test(model, test_dataloader)
+    # 2) Train Models
+    models = []
+    for bag in bags:
+      train_dataloader, val_dataloader = get_dataloaders(bag, batch_size=args['batch_size'], num_workers=args['num_workers'])
+      model = BaseNet(model_type=args['model'], lr=args['lr'], weight_class=args['weight_class'], weight=args['weight'])
+      trainer.fit(model, train_dataloader, val_dataloader)
+      models.append(model)
+    
+    # 3) Combine Models and Inference
+    test_json = str(Path(args['datastore']) / 'test.json')
+    test_dataloader = get_test_dataloader(args['datastore'], test_json)
+    ensemble = ModelEnsemble(models)
+    result = trainer.test(ensemble, test_dataloader)
     print(result)
 
-    # Final Testing to be peformed with models in parallel
 
 # Bagging Logic
 def process_json(json_path):
@@ -85,3 +86,45 @@ def create_bags(args, imbalanced_json, threshold=200):
     bags.append(BaseDataset(args['datastore'], current_bag, image_size=args['image_size'], da=args['augment_data']))
 
   return bags
+
+class ModelEnsemble(LightningModule):
+  def __init__(self, models):
+    super().__init__()
+    # Create Models
+    self.models = models
+
+    # For Metrics
+    self.test_acc = torchmetrics.Accuracy()
+    self.preds = []
+    self.labels = []
+
+  def forward(self, x):
+    prediction = torch.zeros(50)
+    for model in self.models:
+      model.eval()
+      prediction = prediction + model(x)  # Simple Aggregate
+    return prediction
+
+  def test_step(self, batch, batch_idx):
+    x, y = batch 
+    logits = self(x)
+    preds = F.softmax(logits, dim=1)
+    self.test_acc(preds, y)
+    self.log('test_acc', self.test_acc)
+
+    # Aggregated Metrics
+    self.preds.append(preds.cpu())
+    self.labels.append(y.cpu())
+  
+  def test_epoch_end(self, outputs):
+    precision = torchmetrics.Precision(num_classes=50)
+    precision(torch.cat(self.preds), torch.cat(self.labels))
+    self.log('precision', precision)
+
+    recall = torchmetrics.Recall(num_classes=50)
+    recall(torch.cat(self.preds), torch.cat(self.labels))
+    self.log('recall', recall)
+
+    auroc = torchmetrics.AUROC(num_classes=50)
+    auroc(torch.cat(self.preds), torch.cat(self.labels))
+    self.log('AUROC', auroc)
