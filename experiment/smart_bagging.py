@@ -13,7 +13,7 @@ class SmartBagging(ExperimentInterface):
     # 1) Init Data Components 
     train_json = str(Path(args['datastore']) / 'train.json')   
     test_json = str(Path(args['datastore']) / 'test.json')
-    bags = create_bags(train_json, args['threshold'])
+    bags = create_bags(args, train_json, args['threshold'])
     dataset = bags[args['bag_num']]
     train_dataloader, val_dataloader = get_dataloaders(dataset, batch_size=args['batch_size'], num_workers=args['num_workers'])
     test_dataloader = get_test_dataloader(args['datastore'], test_json)
@@ -68,7 +68,7 @@ def split_histogram(hist, data, threshold):
   return majority, minority
 
 # This creates a list of BaseDatasets
-def create_bags(imbalanced_json, threshold=200):
+def create_bags(args, imbalanced_json, threshold=200):
   # 1) Load Data
   entries = process_json(imbalanced_json)
 
@@ -82,6 +82,6 @@ def create_bags(imbalanced_json, threshold=200):
   bags = []
   for start in range(num_bags):
     current_bag = majority[start::num_bags] + minority  # we toss out some samples and thats okay
-    bags.append(BaseDataset(current_bag)) 
+    bags.append(BaseDataset(args['datastore'], current_bag, image_size=args['image_size'], da=args['augment_data']))
 
   return bags
