@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 import pytorch_lightning.utilities.seed as seed
-from experiment import Baseline, SmartBagging, WeightedLoss
+from experiment import Baseline, SmartBagging
 
 # Experiments 
 def run_experiment(args: dict) -> None:

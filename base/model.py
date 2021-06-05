@@ -107,7 +107,6 @@ class WeightedLoss:
       e_numerator = 1.0 - torch.tensor([torch.pow(beta, sample_count) for sample_count in hist.values()])
       e_denominator = 1.0 - beta
       weights = e_denominator / e_numerator
-
       self.weight_map = weights / torch.sum(weights)
     
     else:  # Identity
