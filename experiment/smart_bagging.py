@@ -12,37 +12,35 @@ from base import BaseDataset, get_dataloaders, get_test_dataloader, BaseNet
 from base import BaseNet
 from .experiment import ExperimentInterface
 
+# For hyperparameter sweeping individual learners 
 class SmartBagging(ExperimentInterface):
   def run_experiment(self, args: dict) -> None:
-    # 1) Init Ensemble Components 
-    train_json = str(Path(args['datastore']) / 'train.json')   
-    bags = create_bags(args, train_json, args['threshold'])
+    # 1) Init Data Components
+    train_json = str(Path(args['datastore']) / 'train.json')
+    test_json = str(Path(args['datastore']) / 'test.json')
+    bags = create_bags(args, train_json)
+    dataset = bags[0]  # Hardcoded to first bag, found hp's should be representative
+    train_dataloader, val_dataloader = get_dataloaders(dataset, batch_size=args['batch_size'], num_workers=args['num_workers'])
+    test_dataloader = get_test_dataloader(args['datastore'], test_json)
+
+    # 2) Init Model
+    if args['weighted_loss'] is not None:
+      hist = get_histogram(process_json(train_json))
+      model = BaseNet(model_type=args['model'], lr=args['lr'], weighted_loss=args['weighted_loss'], hist=hist, beta=args['beta'])
+    else:
+      model = BaseNet(model_type=args['model'], lr=args['lr'])
+
+    # 3) Init Trainer 
     trainer = Trainer(gpus=args['gpus'], max_epochs=args['epochs'],
                       checkpoint_callback=True, 
                       logger=TensorBoardLogger(save_dir='lightning_logs'))
 
-    # 2) Train Models
-    models = []
-    for bag in bags:
-      train_dataloader, val_dataloader = get_dataloaders(bag, batch_size=args['batch_size'], num_workers=args['num_workers'])
+    # 4) Run Training
+    trainer.fit(model, train_dataloader, val_dataloader)
+    trainer.save_checkpoint("training_end.ckpt")
 
-      if args['weighted_loss'] is not None:
-        hist = get_histogram(process_json(train_json))
-        model = BaseNet(model_type=args['model'], lr=args['lr'], weighted_loss=args['weighted_loss'], hist=hist, beta=args['beta'])
-      else:
-        model = BaseNet(model_type=args['model'], lr=args['lr'])      
-      
-      trainer.fit(model, train_dataloader, val_dataloader)
-      models.append(model)
-    
-    # 3) Combine Models and Inference
-    test_json = str(Path(args['datastore']) / 'test.json')
-    test_dataloader = get_test_dataloader(args['datastore'], test_json)
-    for model in models:
-      if torch.cuda.is_available():
-        model.cuda()
-    ensemble = ModelEnsemble(models)
-    result = trainer.test(ensemble, test_dataloader)
+    # 5) Run Inference
+    result = trainer.test(model, test_dataloader)
     print(result)
 
 # Bagging Logic
@@ -77,16 +75,16 @@ def split_histogram(hist, data, threshold):
   return majority, minority
 
 # This creates a list of BaseDatasets
-def create_bags(args, imbalanced_json, threshold=200):
+def create_bags(args, imbalanced_json):
   # 1) Load Data
   entries = process_json(imbalanced_json)
 
   # 2) Calculate Number of Learners
   hist = get_histogram(entries)
-  num_bags = max(hist.values()) // threshold
+  num_bags = max(hist.values()) // args['threshold']
 
   # 3) Create Datasets
-  majority, minority = split_histogram(hist, entries, threshold)
+  majority, minority = split_histogram(hist, entries, args['threshold'])
   random.shuffle(majority) # need shuffle the deck! 
   bags = []
   for start in range(num_bags):
