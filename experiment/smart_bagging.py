@@ -68,7 +68,7 @@ def split_histogram(hist, data, threshold):
 
   # Divide distribution
   sorted_data = sorted(data, key=lambda x: hist[x['category_id']], reverse=True)  # sort classes by frequency  
-  category_ids = [entry['category_id'] for entry in sorted_data]
+  category_ids = [entry['category_id'] // 2 for entry in sorted_data]
   split = category_ids.index(cl) # Find first instance of cl
   majority = sorted_data[:split]
   minority = sorted_data[split:]
@@ -92,45 +92,3 @@ def create_bags(args, imbalanced_json):
     bags.append(BaseDataset(args['datastore'], current_bag, image_size=args['image_size'], da=args['augment_data']))
 
   return bags
-
-class ModelEnsemble(LightningModule):
-  def __init__(self, models):
-    super().__init__()
-    # Create Models
-    self.models = models
-
-    # For Metrics
-    self.test_acc = torchmetrics.Accuracy()
-    self.preds = []
-    self.labels = []
-
-  def forward(self, x):
-    prediction = torch.zeros(50).cuda()
-    for model in self.models:
-      model.eval()
-      prediction = prediction + model(x)  # Simple Aggregate
-    return prediction
-
-  def test_step(self, batch, batch_idx):
-    x, y = batch 
-    logits = self(x)
-    preds = F.softmax(logits, dim=1)
-    self.test_acc(preds, y)
-    self.log('test_acc', self.test_acc)
-
-    # Aggregated Metrics
-    self.preds.append(preds.cpu())
-    self.labels.append(y.cpu())
-  
-  def test_epoch_end(self, outputs):
-    precision = torchmetrics.Precision(num_classes=50)
-    precision(torch.cat(self.preds), torch.cat(self.labels))
-    self.log('precision', precision)
-
-    recall = torchmetrics.Recall(num_classes=50)
-    recall(torch.cat(self.preds), torch.cat(self.labels))
-    self.log('recall', recall)
-
-    auroc = torchmetrics.AUROC(num_classes=50)
-    auroc(torch.cat(self.preds), torch.cat(self.labels))
-    self.log('AUROC', auroc)
