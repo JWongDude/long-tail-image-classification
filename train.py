@@ -27,8 +27,8 @@ def main():
   # Model args
   parser.add_argument('--model', type=str, default='efficientnet_b0')
   parser.add_argument('--lr', type=float, default=4e-4)
-  parser.add_argument('--weighted_loss', type=str, default=None)
-  parser.add_argument('--beta', type=float, default=None)
+  parser.add_argument('--weighted_loss', type=str, default=None) # ['ins', 'isns', 'ens']
+  parser.add_argument('--beta', type=float, default=None) # For ens: [0.99, 0.999]
 
   # Trainer args 
   parser.add_argument('--gpus', type=int, default=1)

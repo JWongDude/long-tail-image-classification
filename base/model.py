@@ -1,4 +1,3 @@
-from pytorch_lightning.core.step_result import weighted_mean
 import torch                                      # For utility
 from torch.nn import functional as F              # For loss, activation functions
 from torch import nn                              # For layers
@@ -44,7 +43,7 @@ class BaseNet(LightningModule):
     x, y = batch 
     logits = self(x)
     # loss = F.cross_entropy(logits, y)  # One hot encoding, log_softmax interally
-    loss = self.weighted_loss(F.log_softmax(logits), y)  # Identity or Weighted Function
+    loss = self.weighted_loss(logits, y)
     preds = F.softmax(logits, dim=1)
     self.train_acc(preds, y)
 
@@ -56,7 +55,7 @@ class BaseNet(LightningModule):
     x, y = batch 
     logits = self(x)
     # loss = F.cross_entropy(logits, y)
-    loss = self.weighted_loss(F.log_softmax(logits), y)
+    loss = self.weighted_loss(logits, y)
     preds = F.softmax(logits, dim=1)
     self.valid_acc(preds, y)
 
@@ -66,8 +65,7 @@ class BaseNet(LightningModule):
   def test_step(self, batch, batch_idx):
     x, y = batch 
     logits = self(x)
-    # loss = F.cross_entropy(logits, y)
-    loss = self.weighted_loss(F.log_softmax(logits), y)
+    loss = F.cross_entropy(logits, y)
     preds = F.softmax(logits, dim=1)
     self.test_acc(preds, y)
 
@@ -104,15 +102,17 @@ class WeightedLoss:
       self.weight_map = weights / torch.sum(weights)
 
     elif weighted_loss == "ens":
-      e_numerator = 1.0 - torch.tensor([torch.pow(beta, sample_count) for sample_count in hist.values()])
+      sample_counts = torch.tensor(list(hist.values()))
+      e_numerator = 1.0 - torch.pow(beta, sample_counts)
       e_denominator = 1.0 - beta
       weights = e_denominator / e_numerator
       self.weight_map = weights / torch.sum(weights)
     
     else:  # Identity
       self.weight_map = torch.ones(50)
+  
+    # Store weights inside Cross Entropy Module
+    self.loss = nn.CrossEntropyLoss(weight=self.weight_map.cuda())
 
-  # Note, weights are applied to elements of log-softmax, then pass through cross-entopy loss.
-  def __call__(self, log_softmax_logits, targets):
-    weights = torch.tensor([self.weight_map[target.item()] for target in targets]).cuda()
-    return F.nll_loss(log_softmax_logits * weights)
+  def __call__(self, logits, labels):
+    return self.loss(logits, labels)
