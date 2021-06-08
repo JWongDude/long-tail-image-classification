@@ -88,7 +88,7 @@ def create_bags(args, imbalanced_json):
   random.shuffle(majority) # need shuffle the deck! 
   bags = []
   for start in range(num_bags):
-    current_bag = majority[start::num_bags] + minority  # we toss out some samples and thats okay
-    bags.append(BaseDataset(args['datastore'], current_bag, image_size=args['image_size'], da=args['augment_data']))
+    current_bag = majority[start::num_bags] + minority
+    bags.append(BaseDataset())
 
   return bags
