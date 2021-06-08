@@ -28,8 +28,6 @@ Stacking with weighted loss produces the baseline accuracy of the next imbalance
 ![image](https://user-images.githubusercontent.com/54962990/121233204-40c7c800-c847-11eb-845d-dc53de99c70e.png)
 
 ## Project Documentation: 
-For futher details, please access the final report and presentation located inside documentation folder.
-
-To see experiment development, please access the "Data Preparation" and "Modeling" notebooks inside the notebook folder.
-
-To see core code, please access the "base" folder for fundamental backbone of all experimentation. 
+For futher details, please access the final report and presentation located inside documentation folder. <br>
+To see experiment development, please access the "Data Preparation" and "Modeling" notebooks inside the notebook folder. <br>
+To see core code, please access the "base" folder for fundamental backbone of all experimentation. <br>
