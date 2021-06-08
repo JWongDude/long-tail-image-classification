@@ -9,9 +9,7 @@ classification accuracy?
 
 Training Datasets:
 ![image](https://user-images.githubusercontent.com/54962990/121232352-5b4d7180-c846-11eb-92e2-cda8b0156000.png)
-
-Test Dataset:
-![image](https://user-images.githubusercontent.com/54962990/121232556-96e83b80-c846-11eb-8353-b48ddd100c11.png)
+The testing dataset is a uniform distribution with 500 images in each class.
 
 ## Setup:
 CIFAR-50 long-tailed distribution is produced from CIFAR-100 dataset
@@ -31,5 +29,7 @@ Stacking with weighted loss produces the baseline accuracy of the next imbalance
 
 ## Project Documentation: 
 For futher details, please access the final report and presentation located inside documentation folder.
+
 To see experiment development, please access the "Data Preparation" and "Modeling" notebooks inside the notebook folder.
+
 To see core code, please access the "base" folder for fundamental backbone of all experimentation. 
